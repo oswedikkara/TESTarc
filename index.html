@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D AI House Architecture Planner</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f7;
+            min-height: 100vh;
+            color: #1d1d1f;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: #1d1d1f;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: #86868b;
+            margin: 0;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .input-panel {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .input-panel h3 {
+            margin: 0 0 32px 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: #1d1d1f;
+            text-align: center;
+            letter-spacing: -0.01em;
+        }
+
+        .input-section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin: 0 0 20px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .input-row.single {
+            grid-template-columns: 1fr;
+        }
+
+        .input-group {
+            margin-bottom: 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: #1d1d1f;
+            letter-spacing: -0.01em;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #d2d2d7;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            background: #ffffff;
+            transition: all 0.2s ease;
+            -webkit-appearance: none;
+            appearance: none;
+            box-sizing: border-box;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
+        }
+
+        .input-group input:hover, .input-group select:hover {
+            border-color: #86868b;
+        }
+
+        .room-config {
+            background: #f8f9fa;
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 0;
+            border: 1px solid #e5e7eb;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px 24px;
+            background: #1d1d1f;
+            color: #ffffff;
+            border: none;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: -0.01em;
+        }
+
+        .generate-btn:hover {
+            background: #424245;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .viewer-panel {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.04);
+            min-height: 600px;
+        }
+
+        .floor-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            background: #f5f5f7;
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .floor-tab {
+            flex: 1;
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 15px;
+            font-family: inherit;
+            color: #86868b;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+        }
+
+        .floor-tab.active {
+            color: #1d1d1f;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .floor-tab:hover:not(.active) {
+            color: #1d1d1f;
+        }
+
+        .floor-plan-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: #fbfbfd;
+            border: 1px solid #d2d2d7;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .floor-plan {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-origin: 0 0;
+            transition: transform 0.3s ease;
+            cursor: grab;
+        }
+
+        .floor-plan:active {
+            cursor: grabbing;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            background: #ffffff;
+            border: 1px solid #d2d2d7;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .zoom-btn:hover {
+            background: #f5f5f7;
+            border-color: #86868b;
+        }
+
+        .zoom-info {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(255,255,255,0.9);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #1d1d1f;
+            backdrop-filter: blur(10px);
+        }
+
+        .room {
+            position: absolute;
+            border: 1px solid #1d1d1f;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 11px;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-radius: 8px;
+            color: #1d1d1f;
+        }
+
+        .room:hover {
+            background: #f5f5f7;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #86868b;
+        }
+
+        .room.bedroom { 
+            background: #e8f4fd; 
+            border-color: #007aff; 
+            color: #007aff;
+        }
+        .room.bathroom { 
+            background: #f0f9ff; 
+            border-color: #0ea5e9; 
+            color: #0ea5e9;
+        }
+        .room.kitchen { 
+            background: #fef3c7; 
+            border-color: #f59e0b; 
+            color: #f59e0b;
+        }
+        .room.living { 
+            background: #dcfce7; 
+            border-color: #22c55e; 
+            color: #22c55e;
+        }
+        .room.dining { 
+            background: #fce7f3; 
+            border-color: #ec4899; 
+            color: #ec4899;
+        }
+
+        .room.bedroom:hover { background: #dbeafe; border-color: #1d4ed8; }
+        .room.bathroom:hover { background: #e0f2fe; border-color: #0284c7; }
+        .room.kitchen:hover { background: #fef08a; border-color: #eab308; }
+        .room.living:hover { background: #bbf7d0; border-color: #16a34a; }
+        .room.dining:hover { background: #f9a8d4; border-color: #db2777; }
+
+        .room-legend {
+            margin-top: 20px;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #d2d2d7;
+        }
+
+        .legend-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 12px;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid;
+        }
+
+        .legend-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1d1d1f;
+        }
+
+        .plan-info {
+            margin-top: 24px;
+            padding: 24px;
+            background: #f5f5f7;
+            border-radius: 16px;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .plan-info h4 {
+            margin: 0 0 16px 0;
+            font-size: 19px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .plan-info p {
+            margin: 8px 0;
+            font-size: 15px;
+            color: #1d1d1f;
+            line-height: 1.4;
+        }
+
+        .plan-info strong {
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #d2d2d7;
+            border-top: 3px solid #1d1d1f;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>3D AI House Architecture Planner</h1>
+            <p>Design your dream home with intelligent floor planning</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-panel">
+                <h3>House Planner</h3>
+                
+                <div class="input-section">
+                    <div class="section-title">Property Dimensions</div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Land Width (feet)</label>
+                            <input type="number" id="landWidth" value="40" min="20" max="200">
+                        </div>
+                        <div class="input-group">
+                            <label>Land Length (feet)</label>
+                            <input type="number" id="landLength" value="60" min="20" max="200">
+                        </div>
+                    </div>
+                    <div class="input-row single">
+                        <div class="input-group">
+                            <label>Number of Floors</label>
+                            <select id="floors">
+                                <option value="1">1 Floor</option>
+                                <option value="2">2 Floors</option>
+                                <option value="3" selected>3 Floors</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <div class="room-config">
+                        <div class="section-title">Room Configuration</div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Bedrooms per Floor</label>
+                                <input type="number" id="bedrooms" value="2" min="1" max="5">
+                            </div>
+                            <div class="input-group">
+                                <label>Bathrooms per Floor</label>
+                                <input type="number" id="bathrooms" value="1" min="1" max="3">
+                            </div>
+                        </div>
+                        <div class="input-row single">
+                            <div class="input-group">
+                                <label>Kitchen Configuration</label>
+                                <select id="kitchen">
+                                    <option value="ground">Ground Floor Only</option>
+                                    <option value="all">All Floors</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <div class="section-title">Design Style</div>
+                    <div class="input-row single">
+                        <div class="input-group">
+                            <label>Architectural Style</label>
+                            <select id="style">
+                                <option value="modern">Modern</option>
+                                <option value="traditional">Traditional</option>
+                                <option value="minimalist">Minimalist</option>
+                                <option value="luxury">Luxury</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="generate-btn" onclick="generatePlan()">
+                    Generate New Plan
+                </button>
+            </div>
+
+            <div class="viewer-panel">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>AI is designing your house architecture...</p>
+                </div>
+
+                <div id="planViewer" style="display: none;">
+                    <div class="floor-tabs" id="floorTabs"></div>
+                    <div class="floor-plan-container">
+                        <div class="zoom-controls">
+                            <button class="zoom-btn" onclick="zoomIn()">+</button>
+                            <button class="zoom-btn" onclick="zoomOut()">−</button>
+                            <button class="zoom-btn" onclick="resetZoom()">⌂</button>
+                        </div>
+                        <div class="floor-plan" id="floorPlan"></div>
+                        <div class="zoom-info" id="zoomInfo">100%</div>
+                    </div>
+                    <div class="room-legend" id="roomLegend"></div>
+                    <div class="plan-info" id="planInfo"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPlan = null;
+        let currentFloor = 0;
+        let planHistory = [];
+        let zoomLevel = 1;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
+        // Room types and their properties
+        const roomTypes = {
+            bedroom: { color: '#e8f4fd', borderColor: '#007aff', minSize: 120, name: 'Bedroom' },
+            bathroom: { color: '#f0f9ff', borderColor: '#0ea5e9', minSize: 40, name: 'Bathroom' },
+            kitchen: { color: '#fef3c7', borderColor: '#f59e0b', minSize: 80, name: 'Kitchen' },
+            living: { color: '#dcfce7', borderColor: '#22c55e', minSize: 200, name: 'Living Room' },
+            dining: { color: '#fce7f3', borderColor: '#ec4899', minSize: 100, name: 'Dining Room' }
+        };
+
+        // Zoom and pan functions
+        function zoomIn() {
+            zoomLevel = Math.min(zoomLevel * 1.2, 3);
+            updateTransform();
+        }
+
+        function zoomOut() {
+            zoomLevel = Math.max(zoomLevel / 1.2, 0.5);
+            updateTransform();
+        }
+
+        function resetZoom() {
+            zoomLevel = 1;
+            panX = 0;
+            panY = 0;
+            updateTransform();
+        }
+
+        function updateTransform() {
+            const floorPlan = document.getElementById('floorPlan');
+            const zoomInfo = document.getElementById('zoomInfo');
+            
+            floorPlan.style.transform = `scale(${zoomLevel}) translate(${panX}px, ${panY}px)`;
+            zoomInfo.textContent = `${Math.round(zoomLevel * 100)}%`;
+        }
+
+        // Pan functionality
+        function initializePanning() {
+            const floorPlan = document.getElementById('floorPlan');
+            
+            floorPlan.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                floorPlan.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const deltaX = (e.clientX - lastMouseX) / zoomLevel;
+                const deltaY = (e.clientY - lastMouseY) / zoomLevel;
+                
+                panX += deltaX;
+                panY += deltaY;
+                
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                
+                updateTransform();
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                floorPlan.style.cursor = 'grab';
+            });
+
+            // Wheel zoom
+            floorPlan.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                    zoomIn();
+                } else {
+                    zoomOut();
+                }
+            });
+        }
+
+        function generatePlan() {
+            const loading = document.getElementById('loading');
+            const viewer = document.getElementById('planViewer');
+            
+            loading.classList.add('active');
+            viewer.style.display = 'none';
+
+            // Simulate AI processing time
+            setTimeout(() => {
+                const landWidth = parseInt(document.getElementById('landWidth').value);
+                const landLength = parseInt(document.getElementById('landLength').value);
+                const floors = parseInt(document.getElementById('floors').value);
+                const bedrooms = parseInt(document.getElementById('bedrooms').value);
+                const bathrooms = parseInt(document.getElementById('bathrooms').value);
+                const kitchenConfig = document.getElementById('kitchen').value;
+                const style = document.getElementById('style').value;
+
+                // Generate unique plan
+                currentPlan = createUniquePlan(landWidth, landLength, floors, bedrooms, bathrooms, kitchenConfig, style);
+                planHistory.push(JSON.parse(JSON.stringify(currentPlan)));
+
+                displayPlan();
+                loading.classList.remove('active');
+                viewer.style.display = 'block';
+            }, 2000);
+        }
+
+        function createUniquePlan(width, length, floors, bedrooms, bathrooms, kitchenConfig, style) {
+            const plan = {
+                dimensions: { width, length },
+                floors: floors,
+                style: style,
+                floorPlans: []
+            };
+
+            // Generate unique seed for this plan
+            const seed = Date.now() + Math.random();
+            
+            for (let floor = 0; floor < floors; floor++) {
+                const floorPlan = generateFloorLayout(width, length, floor, bedrooms, bathrooms, kitchenConfig, style, seed + floor);
+                plan.floorPlans.push(floorPlan);
+            }
+
+            return plan;
+        }
+
+        function generateFloorLayout(width, length, floorNum, bedrooms, bathrooms, kitchenConfig, style, seed) {
+            // Use seed for consistent but unique randomization
+            let random = seedRandom(seed);
+            
+            const rooms = [];
+            const usableWidth = width - 4; // Account for walls
+            const usableLength = length - 4;
+            
+            // Different layout strategies based on style
+            const layoutStrategy = getLayoutStrategy(style, floorNum);
+            
+            // Generate rooms based on floor
+            if (floorNum === 0) {
+                // Ground floor - living areas + bedrooms
+                rooms.push(...generateGroundFloorRooms(usableWidth, usableLength, bedrooms, bathrooms, kitchenConfig, random, layoutStrategy));
+            } else {
+                // Upper floors - mainly bedrooms and bathrooms
+                rooms.push(...generateUpperFloorRooms(usableWidth, usableLength, bedrooms, bathrooms, random, layoutStrategy));
+            }
+
+            return {
+                floorNumber: floorNum + 1,
+                rooms: rooms,
+                totalArea: width * length
+            };
+        }
+
+        function getLayoutStrategy(style, floorNum) {
+            const strategies = {
+                modern: { openConcept: true, largeWindows: true, centralStairs: true },
+                traditional: { separateRooms: true, formalDining: true, frontPorch: floorNum === 0 },
+                minimalist: { openSpaces: true, fewWalls: true, cleanLines: true },
+                luxury: { largeRooms: true, masterSuite: true, walkInClosets: true }
+            };
+            return strategies[style] || strategies.modern;
+        }
+
+        function generateGroundFloorRooms(width, length, bedrooms, bathrooms, kitchenConfig, random, strategy) {
+            const rooms = [];
+            let placedArea = 0;
+            const totalArea = width * length;
+            
+            // Always include living room on ground floor
+            const livingRoom = createRoom('living', width * 0.4, length * 0.6, 2, 2, random);
+            rooms.push(livingRoom);
+            placedArea += livingRoom.width * livingRoom.height;
+
+            // Kitchen
+            if (kitchenConfig === 'ground' || kitchenConfig === 'all') {
+                const kitchen = createRoom('kitchen', width * 0.3, length * 0.4, livingRoom.x + livingRoom.width + 1, 2, random);
+                rooms.push(kitchen);
+                placedArea += kitchen.width * kitchen.height;
+            }
+
+            // Dining room for traditional/luxury styles
+            if (strategy.formalDining || strategy.largeRooms) {
+                const dining = createRoom('dining', width * 0.25, length * 0.35, 2, livingRoom.y + livingRoom.height + 1, random);
+                rooms.push(dining);
+                placedArea += dining.width * dining.height;
+            }
+
+            // Add bedrooms and bathrooms
+            rooms.push(...distributeRooms('bedroom', bedrooms, width, length, rooms, random));
+            rooms.push(...distributeRooms('bathroom', bathrooms, width, length, rooms, random));
+
+            return rooms;
+        }
+
+        function generateUpperFloorRooms(width, length, bedrooms, bathrooms, random, strategy) {
+            const rooms = [];
+            
+            // Upper floors focus on bedrooms and bathrooms
+            rooms.push(...distributeRooms('bedroom', bedrooms, width, length, [], random));
+            rooms.push(...distributeRooms('bathroom', bathrooms, width, length, rooms, random));
+            
+            // Add small living area for luxury style
+            if (strategy.largeRooms) {
+                const familyRoom = createRoom('living', width * 0.3, length * 0.3, 2, 2, random);
+                rooms.push(familyRoom);
+            }
+
+            return rooms;
+        }
+
+        function distributeRooms(roomType, count, maxWidth, maxLength, existingRooms, random) {
+            const rooms = [];
+            const roomConfig = roomTypes[roomType];
+            
+            for (let i = 0; i < count; i++) {
+                let attempts = 0;
+                let room;
+                
+                do {
+                    const baseWidth = Math.sqrt(roomConfig.minSize) + random() * 50;
+                    const baseHeight = roomConfig.minSize / baseWidth;
+                    
+                    room = createRoom(
+                        roomType,
+                        Math.min(baseWidth, maxWidth * 0.4),
+                        Math.min(baseHeight, maxLength * 0.4),
+                        random() * (maxWidth - baseWidth),
+                        random() * (maxLength - baseHeight),
+                        random
+                    );
+                    attempts++;
+                } while (isOverlapping(room, [...existingRooms, ...rooms]) && attempts < 50);
+                
+                if (attempts < 50) {
+                    rooms.push(room);
+                }
+            }
+            
+            return rooms;
+        }
+
+        function createRoom(type, width, height, x, y, random) {
+            // Add some variation to make each generation unique
+            const variation = 0.8 + random() * 0.4; // 0.8 to 1.2 multiplier
+            
+            return {
+                type: type,
+                width: Math.max(width * variation, 60),
+                height: Math.max(height * variation, 40),
+                x: Math.max(2, x + (random() - 0.5) * 20),
+                y: Math.max(2, y + (random() - 0.5) * 20),
+                id: `${type}_${Date.now()}_${Math.floor(random() * 1000)}`
+            };
+        }
+
+        function isOverlapping(newRoom, existingRooms) {
+            return existingRooms.some(room => {
+                return !(newRoom.x + newRoom.width < room.x || 
+                        room.x + room.width < newRoom.x || 
+                        newRoom.y + newRoom.height < room.y || 
+                        room.y + room.height < newRoom.y);
+            });
+        }
+
+        function seedRandom(seed) {
+            let m = 0x80000000;
+            let a = 1103515245;
+            let c = 12345;
+            let state = seed ? seed : Math.floor(Math.random() * (m - 1));
+            
+            return function() {
+                state = (a * state + c) % m;
+                return state / (m - 1);
+            };
+        }
+
+        function displayPlan() {
+            createFloorTabs();
+            createRoomLegend();
+            showFloor(0);
+            updatePlanInfo();
+            initializePanning();
+        }
+
+        function createRoomLegend() {
+            const legendContainer = document.getElementById('roomLegend');
+            const legendItems = Object.entries(roomTypes).map(([type, config]) => {
+                return `
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: ${config.color}; border-color: ${config.borderColor};"></div>
+                        <span class="legend-label">${config.name}</span>
+                    </div>
+                `;
+            }).join('');
+
+            legendContainer.innerHTML = `
+                <div class="legend-title">Room Types</div>
+                <div class="legend-items">
+                    ${legendItems}
+                </div>
+            `;
+        }
+
+        function createFloorTabs() {
+            const tabsContainer = document.getElementById('floorTabs');
+            tabsContainer.innerHTML = '';
+            
+            for (let i = 0; i < currentPlan.floors; i++) {
+                const tab = document.createElement('button');
+                tab.className = `floor-tab ${i === 0 ? 'active' : ''}`;
+                tab.textContent = `Floor ${i + 1}`;
+                tab.onclick = () => showFloor(i);
+                tabsContainer.appendChild(tab);
+            }
+        }
+
+        function showFloor(floorIndex) {
+            currentFloor = floorIndex;
+            
+            // Reset zoom and pan for new floor
+            zoomLevel = 1;
+            panX = 0;
+            panY = 0;
+            
+            // Update active tab
+            document.querySelectorAll('.floor-tab').forEach((tab, index) => {
+                tab.classList.toggle('active', index === floorIndex);
+            });
+            
+            // Render floor plan
+            const floorPlan = document.getElementById('floorPlan');
+            floorPlan.innerHTML = '';
+            
+            const floor = currentPlan.floorPlans[floorIndex];
+            
+            // Calculate scale to fit the entire floor plan
+            const containerWidth = 480;
+            const containerHeight = 460;
+            const scaleX = containerWidth / currentPlan.dimensions.width;
+            const scaleY = containerHeight / currentPlan.dimensions.length;
+            const scale = Math.min(scaleX, scaleY) * 0.9; // 90% to add some padding
+            
+            // Set floor plan dimensions to show the entire land area
+            floorPlan.style.width = `${currentPlan.dimensions.width * scale}px`;
+            floorPlan.style.height = `${currentPlan.dimensions.length * scale}px`;
+            floorPlan.style.margin = 'auto';
+            
+            // Add land boundary
+            const landBoundary = document.createElement('div');
+            landBoundary.style.position = 'absolute';
+            landBoundary.style.top = '0';
+            landBoundary.style.left = '0';
+            landBoundary.style.width = '100%';
+            landBoundary.style.height = '100%';
+            landBoundary.style.border = '2px solid #1d1d1f';
+            landBoundary.style.borderRadius = '4px';
+            landBoundary.style.background = 'rgba(245, 245, 247, 0.3)';
+            floorPlan.appendChild(landBoundary);
+            
+            floor.rooms.forEach(room => {
+                const roomElement = document.createElement('div');
+                roomElement.className = `room ${room.type}`;
+                roomElement.style.left = `${room.x * scale}px`;
+                roomElement.style.top = `${room.y * scale}px`;
+                roomElement.style.width = `${room.width * scale}px`;
+                roomElement.style.height = `${room.height * scale}px`;
+                roomElement.textContent = `${roomTypes[room.type].name}\n${Math.round(room.width)}' × ${Math.round(room.height)}'`;
+                roomElement.title = `${roomTypes[room.type].name} - ${Math.round(room.width * room.height)} sq ft`;
+                
+                floorPlan.appendChild(roomElement);
+            });
+            
+            updateTransform();
+        }
+
+        function updatePlanInfo() {
+            const info = document.getElementById('planInfo');
+            const totalRooms = currentPlan.floorPlans.reduce((sum, floor) => sum + floor.rooms.length, 0);
+            const totalArea = currentPlan.dimensions.width * currentPlan.dimensions.length * currentPlan.floors;
+            
+            info.innerHTML = `
+                <h4>Plan Summary</h4>
+                <p><strong>Land Size:</strong> ${currentPlan.dimensions.width}' × ${currentPlan.dimensions.length}' (${currentPlan.dimensions.width * currentPlan.dimensions.length} sq ft)</p>
+                <p><strong>Total Floors:</strong> ${currentPlan.floors}</p>
+                <p><strong>Total Rooms:</strong> ${totalRooms}</p>
+                <p><strong>Total Built Area:</strong> ${totalArea} sq ft</p>
+                <p><strong>Style:</strong> ${currentPlan.style.charAt(0).toUpperCase() + currentPlan.style.slice(1)}</p>
+                <p><strong>Plans Generated:</strong> ${planHistory.length}</p>
+            `;
+        }
+
+        // Generate initial plan on load
+        window.onload = function() {
+            generatePlan();
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98761b27e7e85132',t:'MTc1OTI2MDMyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
